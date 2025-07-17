@@ -1,0 +1,133 @@
+-- GUI RGB + Auto Farm Almond Water + Teleport Spawn (Mobile-Friendly) - Made by Arthur and Davi
+
+if getgenv().GuiCreated then return end
+getgenv().GuiCreated = true
+
+_G.AutoCollectAlmondWater = false
+
+-- Notificação
+local function Notify()
+    local StarterGui = game:GetService("StarterGui")
+    StarterGui:SetCore("SendNotification", {
+        Title = "Aviso",
+        Text = "Made by Arthur and Davi",
+        Duration = 5
+    })
+end
+
+Notify()
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "AlmondWaterGUI"
+
+-- Frame principal (botão RGB)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Position = UDim2.new(0.35, 0, 0.01, 0) -- Mais pra cima (0.01)
+Frame.Size = UDim2.new(0, 160, 0, 35) -- Menor
+Frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Frame.BorderSizePixel = 0
+Frame.Name = "MainFrame"
+
+-- Efeito RGB
+spawn(function()
+    while task.wait() do
+        for hue = 0, 1, 0.01 do
+            Frame.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+            task.wait(0.05)
+        end
+    end
+end)
+
+-- Botão Auto Farm
+local Button = Instance.new("TextButton", Frame)
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.Text = "Ativar Auto Almond"
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.TextScaled = true
+Button.BackgroundTransparency = 1
+
+-- Botão Teleport Spawn
+local SpawnButton = Instance.new("TextButton", ScreenGui)
+SpawnButton.Position = UDim2.new(0.35, 170, 0.01, 0) -- ao lado e mais pra cima
+SpawnButton.Size = UDim2.new(0, 100, 0, 35) -- Menor
+SpawnButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SpawnButton.Text = "Teleport Spawn"
+SpawnButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpawnButton.TextScaled = true
+SpawnButton.BorderSizePixel = 0
+SpawnButton.AutoButtonColor = true
+
+-- Função teleportar pro spawn
+local function TeleportToSpawn()
+    local character = game.Players.LocalPlayer.Character
+    local spawnLocation = nil
+
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("SpawnLocation") then
+            spawnLocation = v
+            break
+        end
+    end
+
+    if character and character:FindFirstChild("HumanoidRootPart") and spawnLocation then
+        character:MoveTo(spawnLocation.Position + Vector3.new(0, 5, 0))
+    else
+        local pos = Vector3.new(0, 10, 0)
+        character:MoveTo(pos)
+    end
+end
+
+SpawnButton.MouseButton1Click:Connect(TeleportToSpawn)
+
+-- Script Auto Farm
+local function AutoFarm()
+    while _G.AutoCollectAlmondWater do
+        if game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            repeat task.wait()
+                for i, v in pairs(game.Workspace.Backrooms.Rooms:FindFirstChild("Backrooms 5"):GetChildren()) do
+                    if v.Name == "Exit" and v:FindFirstChild("Frame") and v.Frame:FindFirstChild("ProximityPrompt") then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Frame.CFrame
+                        fireproximityprompt(v.Frame:FindFirstChild("ProximityPrompt"))
+                    end
+                end
+            until game:GetService("Players").LocalPlayer:FindFirstChild("BackroomsLevel").Value == 4
+
+            repeat task.wait()
+                for i,v in ipairs(game.Workspace.Backrooms:GetChildren()) do
+                    if v.Name == "Almond Water" and v:FindFirstChild("ProximityPrompt") then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+                        fireproximityprompt(v:FindFirstChild("ProximityPrompt"))
+                    end
+                end
+            until game:GetService("Players").LocalPlayer:FindFirstChild("BackroomsLevel").Value == 0
+        end
+        task.wait()
+    end
+
+    local Almost = {}
+    for i, v in ipairs(game.Players.LocalPlayer.Character:GetChildren()) do
+        if v.Name == "Almond Water" then
+            table.insert(Almost, v)
+        end
+    end
+    for i, v in ipairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        if v.Name == "Almond Water" then
+            table.insert(Almost, v)
+        end
+    end
+    for i, v in ipairs(Almost) do
+        v.Parent = game.Players.LocalPlayer.Character
+    end
+end
+
+-- Ativação pelo botão
+Button.MouseButton1Click:Connect(function()
+    _G.AutoCollectAlmondWater = not _G.AutoCollectAlmondWater
+    if _G.AutoCollectAlmondWater then
+        Button.Text = "Desativar Auto Almond"
+        spawn(AutoFarm)
+    else
+        Button.Text = "Ativar Auto Almond"
+    end
+end)
